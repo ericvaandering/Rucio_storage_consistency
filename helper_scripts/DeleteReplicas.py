@@ -83,7 +83,8 @@ with open('dark_files.csv', 'r') as csvfile:
     dark_replicas = []
     for rse, scope, name, reason in reader:
         rse_id = get_rse_id(rse=rse)
-        replicas = [{'rse_id': rse_id, 'path': name}]
+        Intscope = InternalScope(scope=scope, vo=issuer.vo)
+        replicas = [{'scope': Intscope, 'rse_id': rse_id, 'path': name}]
         
         add_quarantined_replicas(rse_id, replicas, session=None)
 
