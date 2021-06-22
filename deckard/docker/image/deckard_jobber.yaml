@@ -31,3 +31,24 @@ jobs:
 #    time: 'R R R * * *'
 # every two minutes, on the first second of the minute
     time: '01 */2 * * * *'
+    notifyOnSuccess:
+      - type: filesystem
+        path: /var/log/deckard-jobber-successes
+        data:
+          - stdout
+          - stderr
+        maxAgeDays: 10
+    notifyOnError:
+      - type: filesystem
+        path: /var/log/deckard-jobber-errors
+        data:
+          - stdout
+          - stderr
+        maxAgeDays: 10
+    notifyOnFailure:
+      - type: filesystem
+        path: /var/log/deckard-jobber-failures
+        data:
+          - stdout
+          - stderr
+        maxAgeDays: 10
