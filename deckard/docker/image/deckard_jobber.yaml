@@ -1,0 +1,33 @@
+## This is your jobfile: use it to tell Jobber what jobs you want it to
+## run on your behalf.  For details of what you can specify here,
+## please see https://dshearer.github.io/jobber/doc/.
+##
+## It consists of two sections: "prefs" and "jobs".  In "prefs" you can
+## set various general settings.  In "jobs", you define your jobs.
+
+version: 1.4
+prefs:
+  runLog:
+    type: file
+    path: /var/log/jobber-runs
+    maxFileLen: 50m
+    maxHistories: 1
+
+resultSinks:
+jobs:
+  ## This section must contain a YAML sequence of maps like the following:
+  #Job:
+  #    cmd: backup daily  # shell command to execute
+  #    time: '* * * * * *'  # SEC MIN HOUR MONTH_DAY MONTH WEEK_DAY.
+  #    onError: Continue  # what to do when the job has an error: Stop, Backoff, or Continue
+  #    notifyOnError: [*programSink]  # what to do with result when job has an error
+  #    notifyOnFailure: [*systemEmailSink, *programSink]  # what to do with result when the job stops due to errors
+  #    notifyOnSuccess: [*filesystemSink]  # what to do with result when the job succeeds
+  #
+  T2_US_Purdue:
+    cmd: /deckard/deckard_site.sh T2_US_Purdue
+    onError: Continue
+
+#    time: 'R R R * * *'
+# every two minutes, on the first second of the minute
+    time: '01 */2 * * * *'

@@ -3,6 +3,7 @@ USER root
 
 RUN mkdir -p /deckard
 COPY deckard_run.sh /deckard/
+COPY deckard-jobber.yaml /deckard/
 WORKDIR /deckard
 
 RUN git clone https://github.com/piperov/Rucio_storage_consistency.git
