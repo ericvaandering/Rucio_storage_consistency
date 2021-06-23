@@ -3,7 +3,7 @@ USER root
 
 # jobber
 RUN rpm -i https://github.com/dshearer/jobber/releases/download/v1.4.0/jobber-1.4.0-1.el7.x86_64.rpm
-
+RUN mkdir -p /var/log/deckard-jobber-successes /var/log/deckard-jobber-errors /var/log/deckard-jobber-failures
 
 RUN mkdir -p /deckard
 COPY deckard_run.sh /deckard/

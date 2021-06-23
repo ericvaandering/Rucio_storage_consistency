@@ -38,7 +38,7 @@ sleep 5
 echo
 echo "============= Jobber log file ============="
 
-tail -f /var/log/jobber-runs
+tail -f /var/log/jobber-runs /var/log/deckard-jobber-successes /var/log/deckard-jobber-errors /var/log/deckard-jobber-failures
 
 ###
 # if [ "$RUCIO_DAEMON" == "deckard" ]
