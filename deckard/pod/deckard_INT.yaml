@@ -272,7 +272,7 @@ spec:
           value: /opt/rucio/deckard
         - name: X509_USER_PROXY
           value: /opt/proxy/x509up
-        image: piperov/deckard:test6repo
+        image: piperov/deckard:latest
         imagePullPolicy: Always
         name: rucio-daemons
         ports:
