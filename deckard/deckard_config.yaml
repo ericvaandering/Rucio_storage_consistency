@@ -1,0 +1,12 @@
+rses: 
+        "*":    # default
+                scannerdir:    /var/cache/consistency-dump
+                minagedark:        28     # in days
+                maxdarkfraction:   0.01   # 1% = 0.01
+                maxmissfraction:   0.01   # 1% = 0.01
+
+        T2_US_Purdue:
+                scannerdir:    /tmp/consistency-dump 
+                minagedark:        4      # in days
+                maxdarkfraction:   0.01   # 1% = 0.01
+                maxmissfraction:   0.01   # 1% = 0.01
