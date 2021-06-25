@@ -10,7 +10,7 @@ Version = "1.0"
 def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Purdue_2021_06_17_02_28_D.list", comm_list="out_D.list", stats_file="test_stats.json"):
 
     t0 = time.time()
-    stats_key = "cms2dark"
+    stats_key = "cmp2dark"
     my_stats = stats = None
     op = "and"
 
@@ -29,9 +29,9 @@ def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Pu
             "old_list_files": 0,
             "join_list_files": 0,
             "operation":    op,
-            "new_list": a_list.FileNames,
-            "old_list": b_list.FileNames,
-            "out_list": out_list.FileNames,
+            "new_list": a_list.FileNames[0],
+            "old_list": b_list.FileNames[0],
+            "out_list": out_list.FileNames[0],
             "status": "started"
         }
         stats[stats_key] = my_stats

@@ -394,36 +394,94 @@ if __name__ == "__main__":
                 cmp2dark(new_list=latest_dark, old_list=oldenough_dark, comm_list=csvfilename, stats_file=latest_run)
                 #cmp2dark(new_list=latest_dark, old_list=oldenough_dark, comm_list="out_D.list", stats_file="test_stats.json")
                 #cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Purdue_2021_06_17_02_28_D.list", comm_list="out_D.list", stats_file="test_stats.json")
-               
+###
+#   SAFEGUARD
+#   If a large fraction (larger than 'maxdarkfraction') of the files at a site are reported as 'dark', do NOT proceed with the deletion.
+#   Instead, put a warning in the _stats.json file, so that an operator can have a look.
+###          
+
+# Get the number of files recorded by the scanner
+                print("latest_run",latest_run)
+                with open(latest_run, "r") as f:
+                    fstats = json.loads(f.read())
+                    if "scanner" in fstats:
+                        scanner_stats = fstats["scanner"]
+                        if "total_files" in scanner_stats:
+                            scanner_files = scanner_stats["total_files"]
+                        else:
+                            scanner_files = 0
+                            for root_info in scanner_stats["roots"]:
+                                scanner_files += root_info["files"]
+                    if "dbdump_before" in fstats:
+                        dbdump_before_files = fstats["dbdump_before"]["files"]
+                    if "dbdump_after" in fstats:
+                        dbdump_after_files = fstats["dbdump_after"]["files"]
+                max_files_at_site = max(scanner_files,dbdump_before_files,dbdump_after_files)
+                print("\nscanner_files: ",scanner_files,"\ndbdump_before_files",dbdump_before_files,"\ndbdump_after_files",dbdump_after_files,"\nmax_files_at_site",max_files_at_site)        
+
+                dark_files = sum(1 for line in open(latest_dark))
+                print("\ndark_files",dark_files)
+                print("dark_files/max_files_at_site = ",dark_files/max_files_at_site)
+                print("maxdarkfraction configured for this RSE: ",maxdarkfraction)
+
+                if dark_files/max_files_at_site < maxdarkfraction:
+                    print("Will proceed with the deletions")
+
 # Then, do the real deletion (code from DeleteReplicas.py)
 # ref:
 # https://github.com/rucio/rucio/blob/a4c05a1efd0525fef9bd9d9b1d9e9d2ad66d51cf/lib/rucio/core/quarantined_replica.py#L35
 # https://github.com/rucio/rucio/blob/master/lib/rucio/daemons/auditor/__init__.py#L194
 
-                issuer = InternalAccount('root')
-                #with open('dark_files.csv', 'r') as csvfile:
-                with open(csvfilename, 'r') as csvfile:
-                    reader = csv.reader(csvfile)
-                    dark_replicas = []
-                    #for rse, scope, name, reason in reader:
-                    scope = "cms"
-                    reason = "deleteing dark file"
-                    for name, in reader:
-                        print("\n Processing dark file:\n RSE: ",rse," Scope: ",scope," Name: ",name)
-                        rse_id = get_rse_id(rse=rse)
-                        Intscope = InternalScope(scope=scope, vo=issuer.vo)
-                        lfns = [{'scope': scope, 'name': name}]
+                    deleted_files = 0
+                    issuer = InternalAccount('root')
+                    #with open('dark_files.csv', 'r') as csvfile:
+                    with open(csvfilename, 'r') as csvfile:
+                        reader = csv.reader(csvfile)
+                        dark_replicas = []
+                        #for rse, scope, name, reason in reader:
+                        scope = "cms"
+                        reason = "deleteing dark file"
+                        for name, in reader:
+                            print("\n Processing dark file:\n RSE: ",rse," Scope: ",scope," Name: ",name)
+                            rse_id = get_rse_id(rse=rse)
+                            Intscope = InternalScope(scope=scope, vo=issuer.vo)
+                            lfns = [{'scope': scope, 'name': name}]
 
-                        attributes = get_rse_info(rse=rse)
-                        pfns = lfns2pfns(rse_settings=attributes, lfns=lfns, operation='delete')
-                        pfn_key = scope + ':' + name
-                        url = pfns[pfn_key]
-                        urls = [url]
-                        paths = parse_pfns(attributes, urls, operation='delete')
-                        replicas = [{'scope': Intscope, 'rse_id': rse_id, 'name': name, 'path': paths[url]['path']+paths[url]['name']}]
-#                        replicas = [{'scope': Intscope, 'rse_id': rse_id, 'name': name, 'path': url}]
-                        add_quarantined_replicas(rse_id, replicas, session=None)
+                            attributes = get_rse_info(rse=rse)
+                            pfns = lfns2pfns(rse_settings=attributes, lfns=lfns, operation='delete')
+                            pfn_key = scope + ':' + name
+                            url = pfns[pfn_key]
+                            urls = [url]
+                            paths = parse_pfns(attributes, urls, operation='delete')
+                            replicas = [{'scope': Intscope, 'rse_id': rse_id, 'name': name, 'path': paths[url]['path']+paths[url]['name']}]
+#                            replicas = [{'scope': Intscope, 'rse_id': rse_id, 'name': name, 'path': url}]
+                            add_quarantined_replicas(rse_id, replicas, session=None)
+                            deleted_files += 1
 
+                    #Update the stats
+                    t1 = time.time()
+
+                    cc_stats= {
+                        "end_time": t1,
+                        "initial_dark_files": dark_files,
+                        "confirmed_dark_files": deleted_files,
+                        "status": "done"
+                    }
+                    stats[stats_key] = cc_stats
+
+                else:
+                    print("\nWARNING: Too many DARK files!  Stopping and asking for operator's help.")
+
+                    #Update the stats
+                    t1 = time.time()
+
+                    cc_stats= {
+                        "end_time": t1,
+                        "initial_dark_files": dark_files,
+                        "confirmed_dark_files": 0,
+                        "status": "ABORTED"
+                    }
+                    stats[stats_key] = cc_stats
 
             else:
                 print("There's no other run for this RSE at least",minagedark,"days older, so cannot safely proceed with dark files deleteion.")
@@ -438,19 +496,77 @@ if __name__ == "__main__":
             latest_miss = re.sub('_stats.json$', '_M.list', latest_run)
             print("\n\nlatest_missing =",latest_miss)   
 
-            issuer = InternalAccount('root')
-            #with open('bad_replicas.csv', 'r') as csvfile:
-            with open(latest_miss, 'r') as csvfile:
-                reader = csv.reader(csvfile)
-                #for rse, scope, name, reason in reader:
-                scope = "cms"
-                reason = "invalidating damaged/missing replica"
-                for name, in reader:
-                    print("\n Processing invalid replica:\n RSE: ",rse," Scope: ",scope," Name: ",name,"\n")
-            
-                    rse_id = get_rse_id(rse=rse)
-                    dids = [{'scope': scope, 'name': name}]
-                    declare_bad_file_replicas(dids=dids, rse_id=rse_id, reason=reason, issuer=issuer)
+# Create a cc_miss section in the stats file
+
+            t0 = time.time()
+            stats_key = "cc_miss"
+            cc_stats = stats = None
+            stats = Stats(latest_run)
+            cc_stats= {
+                "start_time": t0,
+                "end_time": None,
+                "initial_miss_files": 0,
+                "confirmed_miss_files": 0,
+                "x-check_run": oldenough_run,
+                "status": "started"
+            }
+            stats[stats_key] = cc_stats
+###
+#   SAFEGUARD
+#   If a large fraction (larger than 'maxmissfraction') of the files at a site are reported as 'missing', do NOT proceed with the invalidation.
+#   Instead, put a warning in the _stats.json file, so that an operator can have a look.
+###
+
+            miss_files = sum(1 for line in open(latest_miss))
+            print("\nmiss_files",miss_files)
+            print("miss_files/max_files_at_site = ",miss_files/max_files_at_site)
+            print("maxmissfraction configured for this RSE: ",maxmissfraction)
+
+            if miss_files/max_files_at_site < maxmissfraction:
+                print("Will proceed with the deletions")
+
+                invalidated_files = 0
+                issuer = InternalAccount('root')
+                #with open('bad_replicas.csv', 'r') as csvfile:
+                with open(latest_miss, 'r') as csvfile:
+                    reader = csv.reader(csvfile)
+                    #for rse, scope, name, reason in reader:
+                    scope = "cms"
+                    reason = "invalidating damaged/missing replica"
+                    for name, in reader:
+                        print("\n Processing invalid replica:\n RSE: ",rse," Scope: ",scope," Name: ",name,"\n")
+                
+                        rse_id = get_rse_id(rse=rse)
+                        dids = [{'scope': scope, 'name': name}]
+                        declare_bad_file_replicas(dids=dids, rse_id=rse_id, reason=reason, issuer=issuer)
+                        invalidated_files += 1
+
+                    #Update the stats
+                    t1 = time.time()
+
+                    cc_stats= {
+                        "end_time": t1,
+                        "initial_miss_files": miss_files,
+                        "confirmed_dark_files": invalidated_files,
+                        "status": "done"
+                    }
+                    stats[stats_key] = cc_stats
+
+            else:
+                print("\nWARNING: Too many DARK filesi. Stopping and asking for operator's help.")
+
+                #Update the stats
+                t1 = time.time()
+
+                cc_stats= {
+                    "end_time": t1,
+                    "initial_miss_files": miss_files,
+                    "confirmed_miss_files": 0,
+                    "status": "ABORTED"
+                }
+                stats[stats_key] = cc_stats
+
+
 ###
 #   Done with Missing Replicas processing
 ###
