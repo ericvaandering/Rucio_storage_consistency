@@ -21,7 +21,7 @@ if [ ! -d /var/cache/consistency-dump ]; then
 fi
 
 # Setup Jobber
-cp deckard_jobber.yaml /root/.jobber
+cp /etc/jobber-config/dot-jobber.yaml /root/.jobber
 mkdir -p /var/log/deckard-jobber-successes
 mkdir -p /var/log/deckard-jobber-errors
 mkdir -p /var/log/deckard-jobber-failures

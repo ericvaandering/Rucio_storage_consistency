@@ -11,7 +11,7 @@ RUN mkdir -p /var/log/deckard-jobber-successes /var/log/deckard-jobber-errors /v
 RUN mkdir -p /deckard
 COPY deckard_run.sh /deckard/
 COPY deckard_site.sh /deckard/
-COPY deckard_jobber.yaml /deckard/
+#COPY deckard_jobber.yaml /deckard/
 WORKDIR /deckard
 
 RUN git clone https://github.com/piperov/Rucio_storage_consistency.git
