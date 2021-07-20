@@ -352,7 +352,7 @@ if __name__ == "__main__":
 
         latest_run = list_runs(rse,1)[0]
         print("Was the latest run", latest_run, "attempted to be processed already? ", was_cc_attempted(latest_run))
-        if was_cc_attempted(latest_run) is False:
+        if was_cc_attempted(latest_run) is False or force_proceed is True:
             print("Will try to process the run")
 ### 
 # Address the Dark files first
@@ -424,7 +424,7 @@ if __name__ == "__main__":
                 print("dark_files/max_files_at_site = ",dark_files/max_files_at_site)
                 print("maxdarkfraction configured for this RSE: ",maxdarkfraction)
 
-                if dark_files/max_files_at_site < maxdarkfraction:
+                if dark_files/max_files_at_site < maxdarkfraction or force_proceed is True:
                     print("Will proceed with the deletions")
 
 # Then, do the real deletion (code from DeleteReplicas.py)
@@ -461,12 +461,12 @@ if __name__ == "__main__":
                     #Update the stats
                     t1 = time.time()
 
-                    cc_stats= {
+                    cc_stats.update({
                         "end_time": t1,
                         "initial_dark_files": dark_files,
                         "confirmed_dark_files": deleted_files,
                         "status": "done"
-                    }
+                    })
                     stats[stats_key] = cc_stats
 
                 else:
@@ -475,12 +475,12 @@ if __name__ == "__main__":
                     #Update the stats
                     t1 = time.time()
 
-                    cc_stats= {
+                    cc_stats.update({
                         "end_time": t1,
                         "initial_dark_files": dark_files,
                         "confirmed_dark_files": 0,
                         "status": "ABORTED"
-                    }
+                    })
                     stats[stats_key] = cc_stats
 
             else:
@@ -522,7 +522,7 @@ if __name__ == "__main__":
             print("miss_files/max_files_at_site = ",miss_files/max_files_at_site)
             print("maxmissfraction configured for this RSE: ",maxmissfraction)
 
-            if miss_files/max_files_at_site < maxmissfraction:
+            if miss_files/max_files_at_site < maxmissfraction or force_proceed is True:
                 print("Will proceed with the deletions")
 
                 invalidated_files = 0
@@ -544,12 +544,12 @@ if __name__ == "__main__":
                     #Update the stats
                     t1 = time.time()
 
-                    cc_stats= {
+                    cc_stats.update({
                         "end_time": t1,
                         "initial_miss_files": miss_files,
-                        "confirmed_dark_files": invalidated_files,
+                        "confirmed_miss_files": invalidated_files,
                         "status": "done"
-                    }
+                    })
                     stats[stats_key] = cc_stats
 
             else:
@@ -558,12 +558,12 @@ if __name__ == "__main__":
                 #Update the stats
                 t1 = time.time()
 
-                cc_stats= {
+                cc_stats.update({
                     "end_time": t1,
                     "initial_miss_files": miss_files,
                     "confirmed_miss_files": 0,
                     "status": "ABORTED"
-                }
+                })
                 stats[stats_key] = cc_stats
 
 
