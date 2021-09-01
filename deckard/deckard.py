@@ -331,9 +331,9 @@ if __name__ == "__main__":
                 oldenough_dark = re.sub('_stats.json$', '_D.list', oldenough_run)
                 print("\nlatest_dark =",latest_dark)
                 print("oldenough_dark =",oldenough_dark)
-                csvfilename = "%s_DeletionList.csv" % latest_run
-                csvfilename = re.sub('_stats.json$', '_DeletionList.csv', latest_run) 
-                cmp2dark(new_list=latest_dark, old_list=oldenough_dark, comm_list=csvfilename, stats_file=latest_run)
+                confirmed_dark = "%s_DeletionList.csv" % latest_run
+                confirmed_dark = re.sub('_stats.json$', '_DeletionList.csv', latest_run) 
+                cmp2dark(new_list=latest_dark, old_list=oldenough_dark, comm_list=confirmed_dark, stats_file=latest_run)
                 #cmp2dark(new_list=latest_dark, old_list=oldenough_dark, comm_list="out_D.list", stats_file="test_stats.json")
                 #cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Purdue_2021_06_17_02_28_D.list", comm_list="out_D.list", stats_file="test_stats.json")
 ###
@@ -362,11 +362,13 @@ if __name__ == "__main__":
                 print("\nscanner_files: ",scanner_files,"\ndbdump_before_files",dbdump_before_files,"\ndbdump_after_files",dbdump_after_files,"\nmax_files_at_site",max_files_at_site)        
 
                 dark_files = sum(1 for line in open(latest_dark))
+                confirmed_dark_files = sum(1 for line in open(confirmed_dark))
                 print("\ndark_files",dark_files)
-                print("dark_files/max_files_at_site = ",dark_files/max_files_at_site)
+                print("\nconfirmed_dark_files",confirmed_dark_files)
+                print("confirmed_dark_files/max_files_at_site = ",confirmed_dark_files/max_files_at_site)
                 print("maxdarkfraction configured for this RSE: ",maxdarkfraction)
 
-                if dark_files/max_files_at_site < maxdarkfraction or force_proceed is True:
+                if confirmed_dark_files/max_files_at_site < maxdarkfraction or force_proceed is True:
                     print("Can proceed with dark files deletion")
 
 # Then, do the real deletion (code from DeleteReplicas.py)
@@ -377,7 +379,7 @@ if __name__ == "__main__":
                     deleted_files = 0
                     issuer = InternalAccount('root')
                     #with open('dark_files.csv', 'r') as csvfile:
-                    with open(csvfilename, 'r') as csvfile:
+                    with open(confirmed_dark, 'r') as csvfile:
                         reader = csv.reader(csvfile)
                         dark_replicas = []
                         #for rse, scope, name, reason in reader:
@@ -412,7 +414,7 @@ if __name__ == "__main__":
                     stats[stats_key] = cc_stats
 
                 else:
-                    darkperc = 100.*dark_files/max_files_at_site
+                    darkperc = 100.*deleted_files/max_files_at_site
                     print("\nWARNING: Too many DARK files! (%3.2f%%) \nStopping and asking for operator's help." % darkperc)
 
                     #Update the stats
@@ -483,6 +485,9 @@ if __name__ == "__main__":
                         rse_id = get_rse_id(rse=rse)
                         dids = [{'scope': scope, 'name': name}]
                         declare_bad_file_replicas(dids=dids, rse_id=rse_id, reason=reason, issuer=issuer)
+                        #n=len(declare_bad_file_replicas(dids=dids, rse_id=rse_id, reason=reason, issuer=issuer))
+                        #print("\nWas it a bad replica? - ",n)
+                        #invalidated_files += n
                         invalidated_files += 1
 
                     #Update the stats
