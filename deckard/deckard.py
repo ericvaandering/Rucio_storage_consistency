@@ -367,7 +367,7 @@ if __name__ == "__main__":
                 print("maxdarkfraction configured for this RSE: ",maxdarkfraction)
 
                 if dark_files/max_files_at_site < maxdarkfraction or force_proceed is True:
-                    print("Will proceed with the deletions")
+                    print("Can proceed with dark files deletion")
 
 # Then, do the real deletion (code from DeleteReplicas.py)
 # ref:
@@ -412,7 +412,8 @@ if __name__ == "__main__":
                     stats[stats_key] = cc_stats
 
                 else:
-                    print("\nWARNING: Too many DARK files!  Stopping and asking for operator's help.")
+                    darkperc = 100.*dark_files/max_files_at_site
+                    print("\nWARNING: Too many DARK files! (%3.2f%%) \nStopping and asking for operator's help." % darkperc)
 
                     #Update the stats
                     t1 = time.time()
@@ -421,7 +422,8 @@ if __name__ == "__main__":
                         "end_time": t1,
                         "initial_dark_files": dark_files,
                         "confirmed_dark_files": 0,
-                        "status": "ABORTED"
+                        "status": "ABORTED",
+                        "aborted_reason": "%3.2f%% dark" % darkperc,
                     })
                     stats[stats_key] = cc_stats
 
@@ -465,7 +467,7 @@ if __name__ == "__main__":
             print("maxmissfraction configured for this RSE: ",maxmissfraction)
 
             if miss_files/max_files_at_site < maxmissfraction or force_proceed is True:
-                print("Will proceed with the deletions")
+                print("Can proceed with missing files retransfer")
 
                 invalidated_files = 0
                 issuer = InternalAccount('root')
@@ -489,13 +491,14 @@ if __name__ == "__main__":
                     cc_stats.update({
                         "end_time": t1,
                         "initial_miss_files": miss_files,
-                        "confirmed_miss_files": invalidated_files,
+                        "confirmed_miss": invalidated_files,
                         "status": "done"
                     })
                     stats[stats_key] = cc_stats
 
             else:
-                print("\nWARNING: Too many DARK filesi. Stopping and asking for operator's help.")
+                missperc = 100.*miss_files/max_files_at_site 
+                print("\nWARNING: Too many MISS files (%3.2f%%)! \nStopping and asking for operator's help." % missperc)
 
                 #Update the stats
                 t1 = time.time()
@@ -504,7 +507,8 @@ if __name__ == "__main__":
                     "end_time": t1,
                     "initial_miss_files": miss_files,
                     "confirmed_miss_files": 0,
-                    "status": "ABORTED"
+                    "status": "ABORTED",
+                    "aborted_reason": "%3.2f%% miss" % missperc,
                 })
                 stats[stats_key] = cc_stats
 
