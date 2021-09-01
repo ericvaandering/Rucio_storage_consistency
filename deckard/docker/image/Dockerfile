@@ -3,6 +3,7 @@ USER root
 
 # Python packages
 RUN pip3  --no-cache-dir install pyyaml
+RUN pip install --no-cache-dir  pyyaml
 
 # jobber
 RUN rpm -i https://github.com/dshearer/jobber/releases/download/v1.4.0/jobber-1.4.0-1.el7.x86_64.rpm
