@@ -368,6 +368,7 @@ if __name__ == "__main__":
                 print("confirmed_dark_files/max_files_at_site = ",confirmed_dark_files/max_files_at_site)
                 print("maxdarkfraction configured for this RSE: ",maxdarkfraction)
 
+                deleted_files = 0
                 if confirmed_dark_files/max_files_at_site < maxdarkfraction or force_proceed is True:
                     print("Can proceed with dark files deletion")
 
@@ -376,7 +377,6 @@ if __name__ == "__main__":
 # https://github.com/rucio/rucio/blob/a4c05a1efd0525fef9bd9d9b1d9e9d2ad66d51cf/lib/rucio/core/quarantined_replica.py#L35
 # https://github.com/rucio/rucio/blob/master/lib/rucio/daemons/auditor/__init__.py#L194
 
-                    deleted_files = 0
                     issuer = InternalAccount('root')
                     #with open('dark_files.csv', 'r') as csvfile:
                     with open(confirmed_dark, 'r') as csvfile:
