@@ -414,7 +414,7 @@ if __name__ == "__main__":
                     stats[stats_key] = cc_stats
 
                 else:
-                    darkperc = 100.*deleted_files/max_files_at_site
+                    darkperc = 100.*confirmed_dark_files/max_files_at_site
                     print("\nWARNING: Too many DARK files! (%3.2f%%) \nStopping and asking for operator's help." % darkperc)
 
                     #Update the stats
