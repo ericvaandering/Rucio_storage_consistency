@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import sys, glob, time, os
+import sys, glob, time, os, gzip
 from stats import Stats
 
 
@@ -12,6 +12,8 @@ def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Pu
     op = "and"
 
     with open(new_list,"r") as a_list, open(old_list,"r") as b_list, open(comm_list,"w") as out_list:
+#future_work#    with open(new_list,"r") if not new_list.endswith(".gz") else gzip.open(new_list, "rt") as a_list, open(old_list,"r") if not old_list.endswith(".gz") else gzip.open(old_list, "rt") as b_list, open(comm_list,"w") as out_list:
+
         if stats_file is not None:
             stats = Stats(stats_file)
             my_stats= {
@@ -27,7 +29,7 @@ def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Pu
 
         a_set = set(line.strip() for line in a_list)
         b_set = set(line.strip() for line in b_list)
-   
+    
 
 # The intersection of the two sets is what can be deleted
         out_set = a_set & b_set
@@ -36,7 +38,7 @@ def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Pu
         out_list.writelines("\n".join(sorted(list(out_set))))
 
     t1 = time.time()
-
+    
     if stats_file:
         my_stats.update({
             "elapsed": t1-t0,
@@ -44,4 +46,3 @@ def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Pu
             "status": "done"
         })
         stats[stats_key] = my_stats
-
