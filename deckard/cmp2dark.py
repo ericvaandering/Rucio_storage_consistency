@@ -11,44 +11,32 @@ def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Pu
     my_stats = stats = None
     op = "and"
 
-    a_list = open(new_list,"r")
-    b_list = open(old_list,"r")
-    out_list = open(comm_list,"w")
-        
-    if stats_file is not None:
-        stats = Stats(stats_file)
-        my_stats= {
-            "elapsed": None,
-            "start_time": t0,
-            "end_time": None,
-            "new_list": new_list,
-            "old_list": old_list,
-            "out_list": out_list.name,
-            "status": "started"
-        }
-#        print("\n new_list: ",new_list," old_list: ",old_list," out_list: ",out_list.name)
-        stats[stats_key] = my_stats
+    with open(new_list,"r") as a_list, open(old_list,"r") as b_list, open(comm_list,"w") as out_list:
+        if stats_file is not None:
+            stats = Stats(stats_file)
+            my_stats= {
+                "elapsed": None,
+                "start_time": t0,
+                "end_time": None,
+                "new_list": new_list,
+                "old_list": old_list,
+                "out_list": out_list.name,
+                "status": "started"
+            }
+            stats[stats_key] = my_stats
 
-    a_set = set(line.strip() for line in a_list)
-#    print("\n a_set length: ", len(a_set))
-    b_set = set(line.strip() for line in b_list)
-#    print("\n b_set length: ", len(b_set))
-    
-#    print("\n a_set: ", a_set," \n b_set: ", b_set)
+        a_set = set(line.strip() for line in a_list)
+        b_set = set(line.strip() for line in b_list)
+   
 
 # The intersection of the two sets is what can be deleted
-    out_set = a_set & b_set
-#    print("\n out_set: ", out_set)
+        out_set = a_set & b_set
+#        print("\n\n\n\n out_set: \n\n\n", "\n".join( sorted(list(out_set)) ))
 
-    for true_dark_file in out_set:
-        true_dark_file = true_dark_file.strip()
-        true_dark_file = true_dark_file+"\n"
-        out_list.write(true_dark_file)
-
-    out_list.close()
+        out_list.writelines("\n".join(sorted(list(out_set))))
 
     t1 = time.time()
-    
+
     if stats_file:
         my_stats.update({
             "elapsed": t1-t0,
@@ -56,4 +44,4 @@ def cmp2dark(new_list="T2_US_Purdue_2021_06_18_02_28_D.list", old_list="T2_US_Pu
             "status": "done"
         })
         stats[stats_key] = my_stats
-        
+
