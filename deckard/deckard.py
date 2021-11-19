@@ -8,7 +8,7 @@ from rucio.client.configclient import ConfigClient
 #from rucio.common.exception import ConfigNotFound
 from rucio.common.config import config_get
 
-from prometheus_client import CollectorRegistry, Counter, push_to_gateway
+from prometheus_client import CollectorRegistry, Counter, Gauge, push_to_gateway
 #from rucio.core.monitor import record_counter, record_timer
 
 # import DeleteReplicas
@@ -46,6 +46,8 @@ from rucio.core.rse import get_rse_protocols
 
 registry = CollectorRegistry()
 GET_CCDARK_COUNTER = Counter('rucio_daemons_deckard_dark_files', 'Number of dark files processed',registry=registry)
+GET_CCDARK_GAUGE = Gauge('rucio_daemons_deckard_dark_files_gauge', 'Gauge of dark files processed', registry=registry, labelnames=('rse',))
+# GET_CCDARK_GAUGE = Gauge('rucio_daemons_deckard_dark_files_gauge', 'Gauge of dark files processed', registry=registry)
 GET_CCMISS_COUNTER = Counter('rucio_daemons_deckard_missing_files', 'Number of missing files processed',registry=registry)
 
 
@@ -439,6 +441,10 @@ if __name__ == "__main__":
                     stats[stats_key] = cc_stats
                     print("\nINFO: Incrementing CCDARK_COUNTER\n\n")
                     GET_CCDARK_COUNTER.inc(deleted_files)
+                    labels = {'rse': rse}
+                    #print("\nLABELS: ", labels)
+                    GET_CCDARK_GAUGE.labels(**labels).set(deleted_files)
+##                    GET_CCDARK_GAUGE.set(deleted_files)
                     print("\nREGISTRY: ",registry)
 #push to Prometheus servers
 

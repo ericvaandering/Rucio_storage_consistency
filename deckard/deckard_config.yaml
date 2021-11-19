@@ -11,6 +11,12 @@ rses:
                 maxdarkfraction:   0.01   # 1% = 0.01
                 maxmissfraction:   0.01   # 1% = 0.01
 
+        T2_US_Wisconsin:
+                scannerdir:    /tmp/consistency-dump 
+                minagedark:        4      # in days
+                maxdarkfraction:   0.01   # 1% = 0.01
+                maxmissfraction:   0.01   # 1% = 0.01
+
         T1_UK_RAL_Trim:
                 scannerdir:    /tmp/consistency-dump 
                 minagedark:        4      # in days
