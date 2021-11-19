@@ -4,11 +4,18 @@ from config import Config
 from cmp2dark import  cmp2dark
 from stats import Stats
 
+from rucio.client.configclient import ConfigClient
+#from rucio.common.exception import ConfigNotFound
+from rucio.common.config import config_get
+
+from prometheus_client import CollectorRegistry, Counter, push_to_gateway
+#from rucio.core.monitor import record_counter, record_timer
 
 # import DeleteReplicas
 import csv
 from rucio.common import exception
 from rucio.common.types import InternalAccount, InternalScope
+from rucio.core import monitor
 from rucio.core.replica import __exists_replicas, update_replicas_states
 from rucio.core.quarantined_replica import add_quarantined_replicas
 from rucio.core.rse import get_rse_id
@@ -32,6 +39,24 @@ from rucio.db.sqla.session import read_session, transactional_session
 
 from rucio.rse.rsemanager import lfns2pfns, get_rse_info, parse_pfns
 from rucio.core.rse import get_rse_protocols
+
+
+#config_client = ConfigClient()
+#print("\n config_client = ",config_client)
+
+registry = CollectorRegistry()
+GET_CCDARK_COUNTER = Counter('rucio_daemons_deckard_dark_files', 'Number of dark files processed',registry=registry)
+GET_CCMISS_COUNTER = Counter('rucio_daemons_deckard_missing_files', 'Number of missing files processed',registry=registry)
+
+
+PROM_SERVERS = config_get('monitor', 'prometheus_servers', raise_exception=False, default='')
+#PROM_SERVERS = 'statsd-exporter-rucio-statsd-exporter.prometheus:8080'
+#PROM_SERVERS = 'prometheus_servers = prometheus-pushgateway.prometheus:9091'
+print("\n PROMETHEUS SERVERS: ",PROM_SERVERS)
+if PROM_SERVERS != '':
+    PROM_SERVERS = PROM_SERVERS.split(',')
+
+
 
 
 
@@ -412,6 +437,19 @@ if __name__ == "__main__":
                         "status": "done"
                     })
                     stats[stats_key] = cc_stats
+                    print("\nINFO: Incrementing CCDARK_COUNTER\n\n")
+                    GET_CCDARK_COUNTER.inc(deleted_files)
+                    print("\nREGISTRY: ",registry)
+#push to Prometheus servers
+
+                    if len(PROM_SERVERS):
+                        for server in PROM_SERVERS:
+                            print("\nSending to Phrometheus Server: ",server)
+                            try:
+                                push_to_gateway(server.strip(), job='deleted_dark_files', registry=registry)
+                            except:
+                                continue
+#push to Prometheus servers
 
                 else:
                     darkperc = 100.*confirmed_dark_files/max_files_at_site
@@ -500,6 +538,20 @@ if __name__ == "__main__":
                         "status": "done"
                     })
                     stats[stats_key] = cc_stats
+                    print("\nINFO: Incrementing CCMISS_COUNTER\n\n")
+                    GET_CCMISS_COUNTER.inc(invalidated_files)
+                    print("\nREGISTRY: ",registry)
+#push to Prometheus servers
+
+                    if len(PROM_SERVERS):
+                        for server in PROM_SERVERS:
+                            print("\nSending to Phrometheus Server: ",server)
+                            try:
+                                push_to_gateway(server.strip(), job='invalidated_missing_files', registry=registry)
+                            except:
+                                continue
+#push to Prometheus servers
+
 
             else:
                 missperc = 100.*miss_files/max_files_at_site 
