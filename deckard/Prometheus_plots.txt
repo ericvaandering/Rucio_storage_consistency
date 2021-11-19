@@ -1,0 +1,8 @@
+Grafana dasjboards:
+https://monit-grafana.cern.ch/d/9g_cqlNWj/rucio-int-consistency-checking-testing-dashboard?from=now-1h&orgId=11&to=now
+
+E.g. check Test panel3:
+-----------------------
+"Data Sources": cmsmonitoring
+"Metrics": rucio_daemons_deckard_dark_files_gauge
+
